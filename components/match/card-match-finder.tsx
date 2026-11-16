@@ -122,7 +122,7 @@ function CardMatchFinderInner({personas, intents = [], limit = 10}: CardMatchFin
 
     const personaObj = personas.find(p => p.slug === activePersona);
     const intentMap = new Map(intents.map(i => [i.slug, i]));
-    const primaryIntentSlug = personaObj?.rank_intents?.[0];
+    const primaryIntentSlug = personaObj?.intents?.[0];
     const monthlySpend = SPEND_STEPS[spendStepIdx];
 
     const withCashback = ranked.filter(r => r.cashback_result.cashback > 0);
@@ -216,7 +216,7 @@ function CardMatchFinderInner({personas, intents = [], limit = 10}: CardMatchFin
                                     key={r.card.id}
                                     ranked={r}
                                     intentMap={intentMap}
-                                    highlightedSlugs={personaObj?.rank_intents}
+                                    highlightedSlugs={personaObj?.intents}
                                     intentSlug={primaryIntentSlug}
                                 />
                             ))}

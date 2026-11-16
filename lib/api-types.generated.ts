@@ -423,6 +423,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/merchant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search merchants
+         * @description Fuzzy search merchants by name/slug, or filter by category or MCC code. Returns curated popular brands with their associated MCC codes.
+         */
+        get: operations["searchMerchants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/mcc": {
         parameters: {
             query?: never;
@@ -630,6 +650,11 @@ export interface components {
             group: "big4" | "foreign" | "digital" | "commercial";
             /** @description Source references for fee data */
             sources?: {
+                /**
+                 * @description Purpose of this source: card_link=intro page, fee_pdf=fee schedule, benefit_pdf=cashback/benefit policy, both=fee+benefit combined, other=unclassified
+                 * @enum {string}
+                 */
+                type?: "card_link" | "fee_pdf" | "benefit_pdf" | "both" | "other";
                 /** @description Human-readable label for the source (e.g. "VPBank Biểu phí thẻ tín dụng 2025") */
                 label: string;
                 /**
@@ -640,9 +665,9 @@ export interface components {
                 /** @description PDF page number where the data was found. Null or absent for non-PDF web sources */
                 page?: number;
             }[];
-            /** @description ISO timestamp of last admin edit */
+            /** @description ISO timestamp of last admin edit. [computed] */
             last_modified?: string | null;
-            /** @description Aggregated card stats. Subset of fields on list endpoint; full stats on detail endpoint. */
+            /** @description Aggregated card stats. Subset of fields on list endpoint; full stats on detail endpoint. [computed] */
             stats?: {
                 /** @description Total number of cards from this bank */
                 card_count: number;
@@ -663,7 +688,7 @@ export interface components {
                     [key: string]: number;
                 };
             };
-            /** @description Network IDs of cards issued by this bank */
+            /** @description Network IDs of cards issued by this bank. [computed] */
             networks?: string[];
             /** @description Full network data for networks this bank issues cards on. Only on detail endpoint. */
             networks_data?: {
@@ -692,8 +717,6 @@ export interface components {
              * @description Merchant website URL
              */
             url?: string;
-            /** @description Matching brand slug in data/brands/ if this merchant has a co-branded card */
-            co_brand?: string;
             /** @description MCC codes this merchant typically uses (4-digit strings, ranges like "7374-7379" allowed in source - expanded at generate time) */
             mcc?: string[];
             /** @description Payment methods accepted (e.g. "Online", "POS") */
@@ -701,10 +724,8 @@ export interface components {
         };
         Mcc: {
             code: string;
-            /** @description Kebab-case identifier (e.g. "software") */
-            slug: string;
-            /** @description Human-readable label in Vietnamese */
-            label: string;
+            /** @description Human-readable label */
+            label: string | null;
         };
         CardTierData: {
             /** @description Tier identifier */
@@ -722,10 +743,6 @@ export interface components {
         };
         CashbackCap: {
             amount: number;
-            /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-            category_caps?: {
-                [key: string]: number;
-            };
         };
         /** @description Scope restricts when a rule fires along channel and geography axes. Absent scope = universal (all channels + all geographies). See cashback-rules.md for defaults and migration from deprecated foreign_offline/foreign_online category strings. */
         RuleScope: {
@@ -745,23 +762,17 @@ export interface components {
             /** @description Per-rule cashback cap. Use { amount: -1 } for explicitly unlimited. When tiers is present, set to tiers[0] cap. Absent means not specified. */
             cap?: {
                 amount: number;
-                /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                category_caps?: {
-                    [key: string]: number;
-                };
             };
             /** @description Best achievable per-rule cap when tiered. When tiers is present, set to max cap across tiers. Omit if cap is flat. */
             cap_max?: {
                 amount: number;
-                /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                category_caps?: {
-                    [key: string]: number;
-                };
             };
             /** @description Intent slugs this rule applies to (from data/intents.json). Use ["all"] for catch-all rules. Absent or empty = incomplete data, scores 0. */
             intents?: string[];
             /** @description MCC codes this rule targets (4-digit strings, ranges like "7374-7379" allowed in source - expanded at generate time). More specific than intents; matched first. */
             mcc?: string[];
+            /** @description MCC codes excluded from this rule (4-digit strings, ranges like "7374-7379" allowed). Bank denies cashback for these codes even if other conditions match. */
+            mcc_excluded?: string[];
             /** @description Specific merchant slugs (e.g. "grab", "shopee"). Absent means all merchants. */
             merchants?: string[];
             /** @description Scope restricts when a rule fires along channel and geography axes. Absent scope = universal (all channels + all geographies). See cashback-rules.md for defaults and migration from deprecated foreign_offline/foreign_online category strings. */
@@ -800,23 +811,17 @@ export interface components {
                 /** @description Per-rule cashback cap. Use { amount: -1 } for explicitly unlimited. When tiers is present, set to tiers[0] cap. Absent means not specified. */
                 cap?: {
                     amount: number;
-                    /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                    category_caps?: {
-                        [key: string]: number;
-                    };
                 };
                 /** @description Best achievable per-rule cap when tiered. When tiers is present, set to max cap across tiers. Omit if cap is flat. */
                 cap_max?: {
                     amount: number;
-                    /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                    category_caps?: {
-                        [key: string]: number;
-                    };
                 };
                 /** @description Intent slugs this rule applies to (from data/intents.json). Use ["all"] for catch-all rules. Absent or empty = incomplete data, scores 0. */
                 intents?: string[];
                 /** @description MCC codes this rule targets (4-digit strings, ranges like "7374-7379" allowed in source - expanded at generate time). More specific than intents; matched first. */
                 mcc?: string[];
+                /** @description MCC codes excluded from this rule (4-digit strings, ranges like "7374-7379" allowed). Bank denies cashback for these codes even if other conditions match. */
+                mcc_excluded?: string[];
                 /** @description Specific merchant slugs (e.g. "grab", "shopee"). Absent means all merchants. */
                 merchants?: string[];
                 /** @description Scope restricts when a rule fires along channel and geography axes. Absent scope = universal (all channels + all geographies). See cashback-rules.md for defaults and migration from deprecated foreign_offline/foreign_online category strings. */
@@ -849,21 +854,15 @@ export interface components {
             max_active_rules?: number;
             /** @description True when rules are mutually exclusive benefit packages - cardholder picks ONE rule group at card issuance and that choice is permanent. Algorithm evaluates each rule independently against the full intent set and returns the max-scoring rule only (no summing, no remaining set). Use when: bank note says "chọn 1 trong N gói khi phát hành thẻ" and each rule covers non-overlapping categories with different rates. Real example: lpbank-jcb-ultimate (Gói Chăm sóc 15% vs Gói Trải nghiệm 10%). Different from max_active_rules (which picks N rules per cycle each statement period) - this is a one-time permanent package choice. */
             package_exclusive?: boolean;
+            /** @description MCC codes excluded from ALL rules in this benefit (4-digit strings, ranges like "4900" allowed). Applied before any rule matching — transactions at these MCCs earn no cashback regardless of category or merchant. Use when the bank specifies a shared exclusion list that applies across all rules (e.g. utilities 4900, jewellery 5944). */
+            global_mcc_excluded?: string[];
             /** @description Overall cashback cap across all rules combined per period. Use the lower (guaranteed) value when tiered. */
             global_cap?: {
                 amount: number;
-                /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                category_caps?: {
-                    [key: string]: number;
-                };
             };
             /** @description Best achievable overall cap when tiered (e.g. higher spend unlocks a larger global cap). Omit if global_cap is flat. */
             global_cap_max?: {
                 amount: number;
-                /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                category_caps?: {
-                    [key: string]: number;
-                };
             };
             /** @description Total spend (VND) at which global_cap_max activates instead of global_cap. Required when global_cap_max is present and the threshold differs from rule tiers. Absent = global_cap is flat (global_cap_max is display-only). */
             global_cap_threshold?: number;
@@ -928,6 +927,11 @@ export interface components {
                 group: "big4" | "foreign" | "digital" | "commercial";
                 /** @description Source references for fee data */
                 sources?: {
+                    /**
+                     * @description Purpose of this source: card_link=intro page, fee_pdf=fee schedule, benefit_pdf=cashback/benefit policy, both=fee+benefit combined, other=unclassified
+                     * @enum {string}
+                     */
+                    type?: "card_link" | "fee_pdf" | "benefit_pdf" | "both" | "other";
                     /** @description Human-readable label for the source (e.g. "VPBank Biểu phí thẻ tín dụng 2025") */
                     label: string;
                     /**
@@ -938,9 +942,9 @@ export interface components {
                     /** @description PDF page number where the data was found. Null or absent for non-PDF web sources */
                     page?: number;
                 }[];
-                /** @description ISO timestamp of last admin edit */
+                /** @description ISO timestamp of last admin edit. [computed] */
                 last_modified?: string | null;
-                /** @description Aggregated card stats. Subset of fields on list endpoint; full stats on detail endpoint. */
+                /** @description Aggregated card stats. Subset of fields on list endpoint; full stats on detail endpoint. [computed] */
                 stats?: {
                     /** @description Total number of cards from this bank */
                     card_count: number;
@@ -961,7 +965,7 @@ export interface components {
                         [key: string]: number;
                     };
                 };
-                /** @description Network IDs of cards issued by this bank */
+                /** @description Network IDs of cards issued by this bank. [computed] */
                 networks?: string[];
                 /** @description Full network data for networks this bank issues cards on. Only on detail endpoint. */
                 networks_data?: {
@@ -1063,7 +1067,7 @@ export interface components {
             is_metal?: boolean;
             /** @description Whether this card is intended for business use. Absent or false means personal card */
             for_business?: boolean;
-            /** @description ISO timestamp of last admin edit. Null if never edited via admin */
+            /** @description ISO timestamp of last admin edit. Null if never edited via admin. [computed] */
             last_modified?: string | null;
             /** @description Fee schedule for this card */
             fees?: {
@@ -1179,23 +1183,17 @@ export interface components {
                     /** @description Per-rule cashback cap. Use { amount: -1 } for explicitly unlimited. When tiers is present, set to tiers[0] cap. Absent means not specified. */
                     cap?: {
                         amount: number;
-                        /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                        category_caps?: {
-                            [key: string]: number;
-                        };
                     };
                     /** @description Best achievable per-rule cap when tiered. When tiers is present, set to max cap across tiers. Omit if cap is flat. */
                     cap_max?: {
                         amount: number;
-                        /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                        category_caps?: {
-                            [key: string]: number;
-                        };
                     };
                     /** @description Intent slugs this rule applies to (from data/intents.json). Use ["all"] for catch-all rules. Absent or empty = incomplete data, scores 0. */
                     intents?: string[];
                     /** @description MCC codes this rule targets (4-digit strings, ranges like "7374-7379" allowed in source - expanded at generate time). More specific than intents; matched first. */
                     mcc?: string[];
+                    /** @description MCC codes excluded from this rule (4-digit strings, ranges like "7374-7379" allowed). Bank denies cashback for these codes even if other conditions match. */
+                    mcc_excluded?: string[];
                     /** @description Specific merchant slugs (e.g. "grab", "shopee"). Absent means all merchants. */
                     merchants?: string[];
                     /** @description Scope restricts when a rule fires along channel and geography axes. Absent scope = universal (all channels + all geographies). See cashback-rules.md for defaults and migration from deprecated foreign_offline/foreign_online category strings. */
@@ -1228,21 +1226,15 @@ export interface components {
                 max_active_rules?: number;
                 /** @description True when rules are mutually exclusive benefit packages - cardholder picks ONE rule group at card issuance and that choice is permanent. Algorithm evaluates each rule independently against the full intent set and returns the max-scoring rule only (no summing, no remaining set). Use when: bank note says "chọn 1 trong N gói khi phát hành thẻ" and each rule covers non-overlapping categories with different rates. Real example: lpbank-jcb-ultimate (Gói Chăm sóc 15% vs Gói Trải nghiệm 10%). Different from max_active_rules (which picks N rules per cycle each statement period) - this is a one-time permanent package choice. */
                 package_exclusive?: boolean;
+                /** @description MCC codes excluded from ALL rules in this benefit (4-digit strings, ranges like "4900" allowed). Applied before any rule matching — transactions at these MCCs earn no cashback regardless of category or merchant. Use when the bank specifies a shared exclusion list that applies across all rules (e.g. utilities 4900, jewellery 5944). */
+                global_mcc_excluded?: string[];
                 /** @description Overall cashback cap across all rules combined per period. Use the lower (guaranteed) value when tiered. */
                 global_cap?: {
                     amount: number;
-                    /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                    category_caps?: {
-                        [key: string]: number;
-                    };
                 };
                 /** @description Best achievable overall cap when tiered (e.g. higher spend unlocks a larger global cap). Omit if global_cap is flat. */
                 global_cap_max?: {
                     amount: number;
-                    /** @description Per-category sub-caps within the rule cap (VND). E.g. { "insurance": 400000 } limits insurance cashback to 400k even if rule cap is higher. See cashback-rule-patterns.md Pattern 5. */
-                    category_caps?: {
-                        [key: string]: number;
-                    };
                 };
                 /** @description Total spend (VND) at which global_cap_max activates instead of global_cap. Required when global_cap_max is present and the threshold differs from rule tiers. Absent = global_cap is flat (global_cap_max is display-only). */
                 global_cap_threshold?: number;
@@ -1262,6 +1254,11 @@ export interface components {
             intents?: string[];
             /** @description Source references for fee and card data */
             sources?: {
+                /**
+                 * @description Purpose of this source: card_link=intro page, fee_pdf=fee schedule, benefit_pdf=cashback/benefit policy, both=fee+benefit combined, other=unclassified
+                 * @enum {string}
+                 */
+                type?: "card_link" | "fee_pdf" | "benefit_pdf" | "both" | "other";
                 /** @description Human-readable label for the source (e.g. "VPBank Biểu phí thẻ tín dụng 2025") */
                 label: string;
                 /**
@@ -1272,9 +1269,9 @@ export interface components {
                 /** @description PDF page number where the data was found. Null or absent for non-PDF web sources */
                 page?: number;
             }[];
-            /** @description Total card score (0–100) from MCDA model: fees (50%), benefits (30%), issuance (10%), cashback data (10%). Null when card lacks enough data for percentile normalization. */
+            /** @description Total card score (0–100) from MCDA model: fees (50%), benefits (30%), issuance (10%), cashback data (10%). Null when card lacks enough data for percentile normalization. [computed] */
             score?: number;
-            /** @description Data completeness score (0–100). Weighted composite of card field completeness and cashback data completeness (60/40 split). */
+            /** @description Data completeness score (0–100). Weighted composite of card field completeness and cashback data completeness (60/40 split). [computed] */
             data_score?: number;
             /**
              * @description Editorial assessment of how hard it is to apply for and receive this card. easy=online/eKYC only, standard=income proof required, strict=invitation/high-income threshold.
@@ -1301,9 +1298,9 @@ export interface components {
                 /** @description Additional lifestyle benefit notes in Vietnamese */
                 note?: string;
             };
-            /** @description Persona slugs this card matches. Computed at data generation time from persona filter rules. */
+            /** @description Persona slugs this card matches. Computed at data generation time from persona filter rules. [computed] */
             matched_personas?: string[];
-            /** @description Percentage of active personas this card matches (0–100). */
+            /** @description Percentage of active personas this card matches (0–100). [computed] */
             persona_coverage?: number;
         };
         Persona: {
@@ -1316,9 +1313,7 @@ export interface components {
             /** @description Short description of what the persona targets */
             note?: string;
             /** @description Intent slugs used when ranking cards under this persona. Empty for pool-filter-only personas. */
-            rank_intents: string[];
-            /** @description Cobrand slugs relevant to this persona. Consumers can use these to sub-filter by co_brand= when the persona has associated cobrand cards. */
-            cobrands?: string[];
+            intents: string[];
             /** @description CardFilter object applied to narrow the card pool. Shape varies by persona type. */
             filter: {
                 [key: string]: unknown;
@@ -1351,6 +1346,8 @@ export interface components {
              * @default []
              */
             co_brands: string[];
+            /** @description MCC codes (4-digit strings or ranges like "3000-3350") typically associated with this intent. Used for inferred MCC matching when a card rule has no explicit mcc[] but covers this intent. */
+            related_mcc?: string[];
         };
         IntentGroupNode: {
             slug: string;
@@ -1620,7 +1617,7 @@ export interface operations {
                 /** @description Filter by co-brand partner identifier (comma-separated OR, e.g. "vietnam-airlines,grab") */
                 co_brand?: string;
                 /** @description Filter by spending intent slug (comma-separated OR, e.g. "shopee,lazada"). Returns cards whose intents[] array includes any of the given values. */
-                intent?: "shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "vietnam-airlines" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books";
+                intent?: "shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books";
                 /** @description Filter by contactless payment methods (comma-separated OR, e.g. "apple_pay,google_pay") */
                 contactless?: string;
                 /** @description Filter by card tier (comma-separated OR, e.g. "infinite,signature") */
@@ -1638,11 +1635,13 @@ export interface operations {
                 /** @description Atomic filter: card has ≥1 cashback rule with this geography scope. "unscoped" matches rules with no geography restriction. */
                 rule_geography?: "domestic" | "foreign" | "unscoped";
                 /** @description Atomic filter: card has ≥1 cashback rule targeting this intent slug (comma-separated OR, e.g. "digital,all"). */
-                rule_intent?: "shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "vietnam-airlines" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books" | "all";
+                rule_intent?: "shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books" | "all";
                 /** @description Filter by cashback benefit. "true" returns only cards with ≥1 cashback rule. "false" returns only cards with no cashback rules. */
                 has_cashback?: "true" | "false";
                 /** @description Filter by annual fee. "true" returns only cards with no annual fee (amount === 0 or unset). "false" returns only cards with a non-zero annual fee. */
                 annual_fee_free?: "true" | "false";
+                /** @description Filter by MCC code (4-digit string, e.g. "5812"). Returns only cards that have ≥1 cashback rule targeting that MCC (ranges in source data are expanded at generate time). */
+                mcc?: string;
             };
             header?: never;
             path?: never;
@@ -1692,7 +1691,7 @@ export interface operations {
                      *       "shopee"
                      *     ]
                      */
-                    intents?: ("shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "vietnam-airlines" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books")[];
+                    intents?: ("shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books")[];
                     /**
                      * @description Monthly spend in VND used to estimate cashback. Default 3,000,000.
                      * @example 3000000
@@ -1783,7 +1782,7 @@ export interface operations {
                      */
                     card_ids: string[];
                     /** @description Intent slugs for cashback estimation context. */
-                    intents?: ("shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "vietnam-airlines" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books")[];
+                    intents?: ("shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books")[];
                     /**
                      * @description Monthly spend in VND for cashback estimates. Default 3,000,000.
                      * @example 3000000
@@ -2173,7 +2172,7 @@ export interface operations {
                      */
                     total_spend?: number;
                     /** @description Intent slug strings. Plain slug (e.g. "dining") distributes total_spend evenly. Slug with amount (e.g. "dining:2000000") sets explicit per-intent spend. */
-                    intents?: ("shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "vietnam-airlines" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books")[];
+                    intents?: ("shopee" | "lazada" | "tiktok-shop" | "tiki" | "ecommerce" | "grab" | "transport" | "dining" | "shopee-food" | "grab-food" | "bamboo-airways" | "agoda" | "travel" | "groceries" | "shopping" | "digital" | "insurance" | "education" | "health" | "cinema" | "entertainment" | "golf" | "ads" | "telecom" | "fashion" | "pets" | "books")[];
                     /** @description Card IDs to evaluate. Pass one ID for single-card detail, multiple for subset comparison. Omit to evaluate all cards. */
                     cards?: string[];
                 };
@@ -2360,6 +2359,48 @@ export interface operations {
                     "application/json": {
                         success?: boolean;
                         data?: components["schemas"]["IntentGroupNode"][];
+                    };
+                };
+            };
+        };
+    };
+    searchMerchants: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Fuzzy search query (matches slug, label, category)
+                 * @example shopee
+                 */
+                q?: string;
+                /**
+                 * @description Exact category filter (e.g. "groceries", "dining")
+                 * @example groceries
+                 */
+                category?: string;
+                /**
+                 * @description 4-digit MCC code filter — returns merchants whose mcc[] includes this code
+                 * @example 5411
+                 */
+                mcc?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        data?: components["schemas"]["Merchant"][];
+                        meta?: {
+                            count?: number;
+                        };
                     };
                 };
             };

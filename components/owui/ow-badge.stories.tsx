@@ -69,13 +69,13 @@ const NETWORKS = [
 const CARD_TYPES = ['credit', 'debit', 'prepaid', 'hybrid', 'co-branded', 'atm', 'transit'] as const;
 
 const PERSONAS = [
-    {slug: 'shopee',    label: 'Shopee',        labelVi: 'Shopee',          rank_intents: ['shopee'],   filter: {}},
-    {slug: 'groceries', label: 'Groceries',     labelVi: 'Siêu thị',        rank_intents: ['groceries'], filter: {}},
-    {slug: 'digital',   label: 'Digital',       labelVi: 'Dịch vụ số',      rank_intents: ['digital'],  filter: {}},
-    {slug: 'traveler',  label: 'Traveler',      labelVi: 'Du lịch',         rank_intents: ['travel'],   filter: {}},
-    {slug: 'commuter',  label: 'Commuter',      labelVi: 'Di chuyển',       rank_intents: ['grab'],     filter: {}},
-    {slug: 'family',    label: 'Family',        labelVi: 'Gia đình',        rank_intents: ['groceries'], filter: {}},
-    {slug: 'dining',    label: 'Dining',        labelVi: 'Ăn uống',         rank_intents: ['dining'],   filter: {}},
+    {slug: 'shopee',    label: 'Shopee',        labelVi: 'Shopee',          intents: ['shopee'],   filter: {}},
+    {slug: 'groceries', label: 'Groceries',     labelVi: 'Siêu thị',        intents: ['groceries'], filter: {}},
+    {slug: 'digital',   label: 'Digital',       labelVi: 'Dịch vụ số',      intents: ['digital'],  filter: {}},
+    {slug: 'traveler',  label: 'Traveler',      labelVi: 'Du lịch',         intents: ['travel'],   filter: {}},
+    {slug: 'commuter',  label: 'Commuter',      labelVi: 'Di chuyển',       intents: ['grab'],     filter: {}},
+    {slug: 'family',    label: 'Family',        labelVi: 'Gia đình',        intents: ['groceries'], filter: {}},
+    {slug: 'dining',    label: 'Dining',        labelVi: 'Ăn uống',         intents: ['dining'],   filter: {}},
 ];
 
 const CONTACTLESS = [

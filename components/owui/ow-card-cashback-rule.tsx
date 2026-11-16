@@ -115,32 +115,6 @@ function TiersTable({tiers}: { tiers: SpendTier[] }) {
     );
 }
 
-function CategoryCaps({
-                          categoryCaps,
-                          intentMap,
-                      }: {
-    categoryCaps: Record<string, number>;
-    intentMap: Map<string, IntentModel>;
-}) {
-    const entries = Object.entries(categoryCaps);
-    if (entries.length === 0) return null;
-    return (
-        <div className="pl-3 border-l-2 border-slate-200 space-y-1">
-            <p className="text-xs text-slate-500">Trần riêng theo danh mục:</p>
-            {entries.map(([slug, amount]) => {
-                const cat = intentMap.get(slug);
-                const label = cat ? `${cat.getIcon()} ${cat.getLabel()}` : slug;
-                return (
-                    <div key={slug} className="flex items-center justify-between text-xs text-slate-700">
-                        <span>{label}</span>
-                        <span className="font-medium"><OwAmount amount={amount} unit="k" textOnly/></span>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export interface OwCardCashbackRuleProps {
@@ -263,9 +237,6 @@ export function OwCardCashbackRule({rule, intentMap, merchantMap, selectable, se
                                 ? 'Hoàn không giới hạn'
                                 : <>Tối đa {rule.cap_max ? <><OwAmount amount={rule.cap.amount} unit="k" textOnly/> – <OwAmount amount={rule.cap_max.amount} unit="k" textOnly period="statementperiod"/></> : <OwAmount amount={rule.cap.amount} unit="k" textOnly period="statementperiod"/>}</>}
                         </div>
-                        {rule.cap.category_caps && (
-                            <CategoryCaps categoryCaps={rule.cap.category_caps} intentMap={intentMap}/>
-                        )}
                     </div>
                 )}
 

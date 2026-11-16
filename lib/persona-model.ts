@@ -167,11 +167,7 @@ export class PersonaModel {
     }
 
     getRankIntents(): string[] {
-        return this.data?.rank_intents ?? [];
-    }
-
-    getCobrands(): string[] {
-        return this.data?.cobrands ?? [];
+        return this.data?.intents ?? [];
     }
 
     getFilter(): Persona['filter'] | undefined {
@@ -242,10 +238,6 @@ export class PersonaModel {
 
     hasRankIntents(): boolean {
         return this.getRankIntents().length > 0;
-    }
-
-    hasCobrands(): boolean {
-        return this.getCobrands().length > 0;
     }
 
     getEmoji(): string[] {
