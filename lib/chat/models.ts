@@ -9,13 +9,17 @@ export type ChatModel = {
 };
 
 export const CHAT_MODELS: ChatModel[] = [
-    // https://openrouter.ai/poolside/laguna-m.1:free
+    // https://openrouter.ai/openai/gpt-oss-120b
+    // Paid (2026-11-16): planned default once it is allowed in the OpenRouter workspace
+    // guardrails and the key has a monthly spend limit. Until then it is blocked
+    // ("Model blocked by guardrail"), so it stays local-only.
     {
-        id: 'poolside/laguna-m.1:free',
-        label: 'Laguna M.1 (free)',
-        provider: 'Poolside',
-        free: true,
-        contextWindow: 262_000,
+        id: 'openai/gpt-oss-120b',
+        label: 'OpenAI gpt-oss-120b',
+        provider: 'OpenAI',
+        free: false,
+        localOnly: true,
+        contextWindow: 131_000,
     },
     // https://openrouter.ai/nvidia/nemotron-3-super-120b-a12b:free
     // policy issue
@@ -27,14 +31,6 @@ export const CHAT_MODELS: ChatModel[] = [
     //     default: true,
     //     contextWindow: 1_000_000,
     // },
-    // https://openrouter.ai/nvidia/nemotron-3.5-content-safety:free
-    {
-        id: 'nvidia/nemotron-3.5-content-safety:free',
-        label: 'NVIDIA: Nemotron 3.5 Content Safety',
-        provider: 'NVIDIA',
-        free: true,
-        contextWindow: 128_000,
-    },
     // https://openrouter.ai/nvidia/nemotron-3-ultra-550b-a55b:free
     {
         id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
@@ -42,6 +38,8 @@ export const CHAT_MODELS: ChatModel[] = [
         provider: 'NVIDIA',
         free: true,
         contextWindow: 1_000_000,
+        // Default since 2026-11-16, after openai/gpt-oss-120b:free was withdrawn.
+        default: true,
     },
     // https://openrouter.ai/qwen/qwen3-coder:free
     // policy issue
@@ -52,15 +50,6 @@ export const CHAT_MODELS: ChatModel[] = [
     //     free: true,
     //     contextWindow: 1_000_000,
     // },
-    // https://openrouter.ai/openai/gpt-oss-120b:free
-    {
-        id: 'openai/gpt-oss-120b:free',
-        label: 'OpenAI gpt-oss-120b (free)',
-        provider: 'OpenAI',
-        free: true,
-        contextWindow: 131_000,
-        default: true
-    },
     // https://openrouter.ai/google/gemma-4-31b-it:free
     // policy issue
     // {
